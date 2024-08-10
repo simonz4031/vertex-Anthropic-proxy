@@ -5,11 +5,9 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-type Logger struct {
-	*zap.SugaredLogger
-}
+var Logger *zap.SugaredLogger
 
-func NewLogger(level string) *Logger {
+func InitLogger(level string) {
 	config := zap.NewProductionConfig()
 	config.EncoderConfig.TimeKey = "timestamp"
 	config.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
@@ -21,5 +19,13 @@ func NewLogger(level string) *Logger {
 	config.Level.SetLevel(l)
 
 	logger, _ := config.Build()
-	return &Logger{logger.Sugar()}
+	Logger = logger.Sugar()
+}
+
+// Add this function to get the logger
+func GetLogger() *zap.SugaredLogger {
+	if Logger == nil {
+		InitLogger("info")
+	}
+	return Logger
 }

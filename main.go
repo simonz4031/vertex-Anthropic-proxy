@@ -1,27 +1,43 @@
 package main
 
 import (
-	"log"
-	"net/http"
+    "fmt"
+    "log"
+    "net/http"
+    "os"
 
-	"github.com/yourusername/vertexai-anthropic-proxy/config"
-	"github.com/yourusername/vertexai-anthropic-proxy/handlers"
-	"github.com/yourusername/vertexai-anthropic-proxy/utils"
+    "vertexai-anthropic-proxy/config"
+    "vertexai-anthropic-proxy/handlers"
+    "vertexai-anthropic-proxy/utils"
 )
 
 func main() {
-	cfg, err := config.Load()
-	if err != nil {
-		log.Fatalf("Failed to load configuration: %v", err)
-	}
+    cfg := config.LoadConfig()
 
-	logger := utils.NewLogger(cfg.LogLevel)
+    // Initialize logger
+    utils.InitLogger("info")
+    logger := utils.GetLogger()
 
-	http.HandleFunc("/v1/messages", handlers.AnthropicHandler(cfg, logger))
-	http.HandleFunc("/v1/messages:stream", handlers.AnthropicStreamHandler(cfg, logger))
+    // Set up routes
+    http.HandleFunc("/v1/messages", handlers.HandleMessages(cfg))
+    http.HandleFunc("/v1/chat/completions", handlers.HandleMessages(cfg)) // Using the same handler for now
 
-	logger.Info("Starting server on :8080")
-	if err := http.ListenAndServe(":8080", nil); err != nil {
-		logger.Fatal("Failed to start server", "error", err)
-	}
+    // Log configuration
+    logger.Infof("Starting server with configuration:")
+    logger.Infof("Vertex AI Project ID: %s", cfg.VertexAIProjectID)
+    logger.Infof("Vertex AI Region: %s", cfg.VertexAIRegion)
+    logger.Infof("Vertex AI Endpoint: %s", cfg.VertexAIEndpoint)
+
+    // Get port from environment variable
+    port := os.Getenv("PORT")
+    if port == "" {
+        port = "8070" // Default port if not specified
+    }
+
+    // Start server
+    addr := fmt.Sprintf(":%s", port)
+    logger.Infof("Server listening on %s", addr)
+    if err := http.ListenAndServe(addr, nil); err != nil {
+        log.Fatalf("Error starting server: %v", err)
+    }
 }

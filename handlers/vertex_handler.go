@@ -5,9 +5,8 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/yourusername/vertexai-anthropic-proxy/config"
-	"github.com/yourusername/vertexai-anthropic-proxy/translation"
-	"github.com/yourusername/vertexai-anthropic-proxy/utils"
+	"vertexai-anthropic-proxy/config"
+	"vertexai-anthropic-proxy/translation"
 )
 
 func callVertexAI(cfg *config.Config, request translation.VertexAIRequest) (*translation.VertexAIResponse, error) {

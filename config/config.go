@@ -1,32 +1,61 @@
 package config
 
 import (
-	"os"
+    "fmt"
+    "log"
+    "os"
 
-	"github.com/joho/godotenv"
+    "github.com/joho/godotenv"
 )
 
 type Config struct {
-	VertexAIEndpoint string
-	AnthropicAPIKey  string
-	LogLevel         string
+    Port               string
+    VertexAIProjectID  string
+    VertexAIRegion     string
+    VertexAIEndpoint   string
+    AnthropicAPIKey    string
+    Model              string
 }
 
-func Load() (*Config, error) {
-	if err := godotenv.Load(); err != nil {
-		return nil, err
-	}
+func LoadConfig() *Config {
+    err := godotenv.Load()
+    if err != nil {
+        log.Printf("Error loading .env file: %v", err)
+    }
 
-	return &Config{
-		VertexAIEndpoint: os.Getenv("VERTEX_AI_ENDPOINT"),
-		AnthropicAPIKey:  os.Getenv("ANTHROPIC_API_KEY"),
-		LogLevel:         getEnv("LOG_LEVEL", "info"),
-	}, nil
+    cfg := &Config{
+        Port:              getEnvOrDefault("PORT", "8070"),
+        VertexAIProjectID: getEnvOrFatal("VERTEX_AI_PROJECT_ID"),
+        VertexAIRegion:    getEnvOrFatal("VERTEX_AI_REGION"),
+        AnthropicAPIKey:   getEnvOrFatal("ANTHROPIC_API_KEY"),
+        Model:             getEnvOrFatal("MODEL"),
+    }
+
+    cfg.VertexAIEndpoint = fmt.Sprintf(
+        "https://%s-aiplatform.googleapis.com/v1/projects/%s/locations/%s/publishers/anthropic/models/%s:streamRawPredict",
+        cfg.VertexAIRegion,
+        cfg.VertexAIProjectID,
+        cfg.VertexAIRegion,
+        cfg.Model,
+    )
+
+    log.Printf("Loaded configuration: %+v", cfg)
+
+    return cfg
 }
 
-func getEnv(key, fallback string) string {
-	if value, ok := os.LookupEnv(key); ok {
-		return value
-	}
-	return fallback
+func getEnvOrDefault(key, defaultValue string) string {
+    value, exists := os.LookupEnv(key)
+    if !exists {
+        return defaultValue
+    }
+    return value
+}
+
+func getEnvOrFatal(key string) string {
+    value, exists := os.LookupEnv(key)
+    if !exists {
+        log.Fatalf("Environment variable %s is not set", key)
+    }
+    return value
 }

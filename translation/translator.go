@@ -1,53 +1,42 @@
 package translation
 
-type AnthropicRequest struct {
-	Model    string   `json:"model"`
-	Messages []Message `json:"messages"`
-	MaxTokens int     `json:"max_tokens"`
-}
-
-type Message struct {
-	Role    string `json:"role"`
-	Content string `json:"content"`
-}
-
-type VertexAIRequest struct {
-	Instances []Instance `json:"instances"`
-	Parameters Parameters `json:"parameters"`
-}
-
-type Instance struct {
-	Context string `json:"context"`
-	Examples []Example `json:"examples"`
-	Messages []Message `json:"messages"`
-}
-
-type Example struct {
-	Input  Message `json:"input"`
-	Output Message `json:"output"`
-}
-
-type Parameters struct {
-	Temperature     float64 `json:"temperature"`
-	MaxOutputTokens int     `json:"maxOutputTokens"`
-	TopP            float64 `json:"topP"`
-	TopK            int     `json:"topK"`
-}
-
-type VertexAIResponse struct {
-	Predictions []Prediction `json:"predictions"`
-}
-
-type Prediction struct {
-	Content string `json:"content"`
-}
+import (
+    "log"
+)
 
 func AnthropicToVertexAI(ar AnthropicRequest) (VertexAIRequest, error) {
-	// TODO: Implement the translation logic
-	return VertexAIRequest{}, nil
+    // Log the incoming Anthropic request
+    log.Printf("Received Anthropic request: %+v", ar)
+
+    vertexReq := VertexAIRequest{
+        AnthropicVersion: "vertex-2023-10-16",
+        Messages:         ar.Messages,
+        MaxTokens:        ar.MaxTokens,
+    }
+
+    // Log the outgoing Vertex AI request
+    log.Printf("Translated to Vertex AI request: %+v", vertexReq)
+
+    return vertexReq, nil
 }
 
 func VertexAIToAnthropic(vr VertexAIResponse) (map[string]interface{}, error) {
-	// TODO: Implement the translation logic
-	return nil, nil
+    if len(vr.Content) == 0 {
+        return nil, nil
+    }
+
+    content := ""
+    for _, c := range vr.Content {
+        if c.Type == "text" {
+            content += c.Text
+        }
+    }
+
+    anthropicResp := map[string]interface{}{
+        "content": content,
+        "model":   vr.Model,
+        "usage":   vr.Usage,
+    }
+
+    return anthropicResp, nil
 }
