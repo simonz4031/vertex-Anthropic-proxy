@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os/exec"
 	"strings"
@@ -62,7 +62,7 @@ func TestVertexAIIntegration(t *testing.T) {
 	defer resp.Body.Close()
 
 	// Read response
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		t.Fatalf("Failed to read response body: %v", err)
 	}

@@ -1,20 +1,47 @@
 package translation
 
 import (
+    "fmt"
     "log"
+    "strings"
 )
 
 func AnthropicToVertexAI(ar AnthropicRequest) (VertexAIRequest, error) {
-    // Log the incoming Anthropic request
     log.Printf("Received Anthropic request: %+v", ar)
+
+    normalizedModelName := NormalizeModelName(ar.Model)
+    log.Printf("Normalized model name: %s", normalizedModelName)
+
+    // Process messages to ensure content is always a string
+    processedMessages := make([]Message, len(ar.Messages))
+    for i, msg := range ar.Messages {
+        processedMsg := Message{Role: msg.Role}
+        switch content := msg.Content.(type) {
+        case string:
+            processedMsg.Content = content
+        case []interface{}:
+            // Join array elements into a single string
+            var parts []string
+            for _, part := range content {
+                if contentMap, ok := part.(map[string]interface{}); ok {
+                    if text, ok := contentMap["text"].(string); ok {
+                        parts = append(parts, text)
+                    }
+                }
+            }
+            processedMsg.Content = strings.Join(parts, " ")
+        default:
+            return VertexAIRequest{}, fmt.Errorf("unsupported content type for message %d", i)
+        }
+        processedMessages[i] = processedMsg
+    }
 
     vertexReq := VertexAIRequest{
         AnthropicVersion: "vertex-2023-10-16",
-        Messages:         ar.Messages,
+        Messages:         processedMessages,
         MaxTokens:        ar.MaxTokens,
     }
 
-    // Log the outgoing Vertex AI request
     log.Printf("Translated to Vertex AI request: %+v", vertexReq)
 
     return vertexReq, nil

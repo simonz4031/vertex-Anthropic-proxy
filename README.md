@@ -9,6 +9,10 @@ This project provides a proxy server that allows you to use the Anthropic Claude
 - [API Endpoints](#api-endpoints)
 - [Usage Examples](#usage-examples)
 - [Development](#development)
+- [Debugging](#debugging)
+- [Refreshing Google Credentials](#refreshing-google-credentials)
+- [Docker Deployment](#docker-deployment)
+- [Security Considerations](#security-considerations)
 
 ## Setup
 
@@ -128,3 +132,111 @@ To contribute to this project:
 5. Submit a pull request
 
 Please ensure your code adheres to the existing style and passes all tests before submitting a pull request.
+
+## Debugging
+
+This project uses dynamic log levels, allowing you to change the logging verbosity at runtime. By default, the log level is set to "info". To change the log level:
+
+1. While the server is running, send a POST request to the `/set-log-level` endpoint:
+
+   ```
+   curl -X POST http://localhost:8070/set-log-level -H "Content-Type: application/json" -d '{"level":"debug"}'
+   ```
+
+   This will set the log level to "debug", enabling more verbose logging.
+
+2. To revert to the default "info" level:
+
+   ```
+   curl -X POST http://localhost:8070/set-log-level -H "Content-Type: application/json" -d '{"level":"info"}'
+   ```
+
+Available log levels are: "debug", "info", "warn", "error", "dpanic", "panic", and "fatal".
+
+Note: Changing the log level affects all subsequent log messages. Use debug logging judiciously in production environments as it may impact performance.
+
+## Refreshing Google Credentials
+
+If you need to refresh the Google credentials without restarting the service, you can use the `/refresh-credentials` endpoint:
+
+```
+curl -X POST http://localhost:8070/refresh-credentials
+```
+
+This will attempt to refresh the Google credentials used by the service. If successful, it will return a 200 OK status with a success message. If there's an error, it will return an appropriate error status and message.
+
+Note: This endpoint should be secured in production environments to prevent unauthorized access.
+
+## Setting up Google Cloud Credentials
+
+When running this service, especially in a containerized environment, you need to provide Google Cloud credentials. There are two main ways to do this:
+
+1. **Using a Service Account Key File:**
+   - Create a service account in your Google Cloud Console.
+   - Download the JSON key file for this service account.
+   - Set the `GOOGLE_APPLICATION_CREDENTIALS` environment variable to the path of this JSON file.
+
+   Example:
+   ```
+   export GOOGLE_APPLICATION_CREDENTIALS="/path/to/your/service-account-key.json"
+   ```
+
+   When using Docker, you can mount this file into the container and set the environment variable in your Dockerfile or docker-compose file.
+
+2. **Using Google Cloud Compute Engine Default Credentials:**
+   If you're running this service on a Google Cloud Compute Engine instance, you can use the instance's default service account. Make sure the instance has the necessary permissions to access Vertex AI.
+
+## Docker Deployment
+
+This service can be easily deployed using Docker. Here are the steps to build and run the Docker container:
+
+1. **Build the Docker image:**
+
+   Navigate to the project directory and run:
+
+   ```
+   docker build -t vertexai-anthropic-proxy .
+   ```
+
+2. **Run the Docker container:**
+
+   ```
+   docker run -p 8070:8070 -v /path/to/your/service-account-key.json:/etc/secrets/service-account-key.json vertexai-anthropic-proxy
+   ```
+
+   Replace `/path/to/your/service-account-key.json` with the actual path to your Google Cloud service account key file.
+
+3. **Environment Variables:**
+
+   You can pass environment variables to the container using the `-e` flag. For example:
+
+   ```
+   docker run -p 8070:8070 \
+     -v /path/to/your/service-account-key.json:/etc/secrets/service-account-key.json \
+     -e VERTEX_AI_PROJECT_ID=your-project-id \
+     -e VERTEX_AI_REGION=your-region \
+     -e VERTEX_AI_ENDPOINT=your-endpoint \
+     -e MODEL=your-model \
+     -e ANTHROPIC_PROXY_API_KEY=your-api-key \
+     vertexai-anthropic-proxy
+   ```
+
+4. **Accessing the Service:**
+
+   Once the container is running, you can access the service at `http://localhost:8070`.
+
+5. **Refreshing Credentials:**
+
+   To refresh the Google Cloud credentials, you can use the `/refresh-credentials` endpoint:
+
+   ```
+   curl -X POST http://localhost:8070/refresh-credentials
+   ```
+
+   This will attempt to reload the credentials from the mounted service account key file.
+
+## Security Considerations
+
+- Never commit your service account key to version control.
+- In production environments, consider using more secure methods to provide credentials, such as using Google Cloud's built-in service account when running on Google Cloud Platform, or using a secrets management system.
+- Ensure that the `/refresh-credentials` endpoint is properly secured to prevent unauthorized access.

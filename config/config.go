@@ -1,61 +1,37 @@
 package config
 
 import (
-    "fmt"
-    "log"
-    "os"
+	"log"
+	"os"
 
-    "github.com/joho/godotenv"
+	"github.com/joho/godotenv"
 )
 
 type Config struct {
-    Port               string
-    VertexAIProjectID  string
-    VertexAIRegion     string
-    VertexAIEndpoint   string
-    AnthropicAPIKey    string
-    Model              string
+	VertexAIProjectID    string
+	VertexAIRegion       string
+	VertexAIEndpoint     string
+	AnthropicModel       string
+	AnthropicProxyAPIKey string
 }
 
 func LoadConfig() *Config {
-    err := godotenv.Load()
-    if err != nil {
-        log.Printf("Error loading .env file: %v", err)
-    }
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
 
-    cfg := &Config{
-        Port:              getEnvOrDefault("PORT", "8070"),
-        VertexAIProjectID: getEnvOrFatal("VERTEX_AI_PROJECT_ID"),
-        VertexAIRegion:    getEnvOrFatal("VERTEX_AI_REGION"),
-        AnthropicAPIKey:   getEnvOrFatal("ANTHROPIC_API_KEY"),
-        Model:             getEnvOrFatal("MODEL"),
-    }
+	cfg := &Config{
+		VertexAIProjectID:    os.Getenv("VERTEX_AI_PROJECT_ID"),
+		VertexAIRegion:       os.Getenv("VERTEX_AI_REGION"),
+		VertexAIEndpoint:     os.Getenv("VERTEX_AI_ENDPOINT"),
+		AnthropicModel:       os.Getenv("MODEL"),
+		AnthropicProxyAPIKey: os.Getenv("ANTHROPIC_PROXY_API_KEY"),
+	}
 
-    cfg.VertexAIEndpoint = fmt.Sprintf(
-        "https://%s-aiplatform.googleapis.com/v1/projects/%s/locations/%s/publishers/anthropic/models/%s:streamRawPredict",
-        cfg.VertexAIRegion,
-        cfg.VertexAIProjectID,
-        cfg.VertexAIRegion,
-        cfg.Model,
-    )
+	if cfg.VertexAIEndpoint == "" {
+		log.Fatal("VERTEX_AI_ENDPOINT is not set in the environment")
+	}
 
-    log.Printf("Loaded configuration: %+v", cfg)
-
-    return cfg
-}
-
-func getEnvOrDefault(key, defaultValue string) string {
-    value, exists := os.LookupEnv(key)
-    if !exists {
-        return defaultValue
-    }
-    return value
-}
-
-func getEnvOrFatal(key string) string {
-    value, exists := os.LookupEnv(key)
-    if !exists {
-        log.Fatalf("Environment variable %s is not set", key)
-    }
-    return value
+	return cfg
 }

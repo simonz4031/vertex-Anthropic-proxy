@@ -19,10 +19,10 @@ func TestHandleMessages(t *testing.T) {
 
 	// Create a mock config
 	mockConfig := &config.Config{
-		VertexAIProjectID: "test-project",
-		VertexAIRegion:    "us-central1",
-		VertexAIEndpoint:  "https://test-endpoint.com",
-		AnthropicAPIKey:   "test-api-key",
+		VertexAIProjectID:    "test-project",
+		VertexAIRegion:       "us-central1",
+		VertexAIEndpoint:     "https://test-endpoint.com",
+		AnthropicProxyAPIKey: "test-api-key",
 	}
 
 	// Add this at the beginning of the TestHandleMessages function
@@ -93,7 +93,7 @@ func TestHandleMessages(t *testing.T) {
 					t.Errorf("handler returned unexpected body: got %v want %v", got, want)
 				}
 			} else {
-				 // For error cases, just check if the expected message is contained in the response
+				// For error cases, just check if the expected message is contained in the response
 				if !strings.Contains(rr.Body.String(), tt.expectedBody) {
 					t.Errorf("handler returned unexpected body: got %v want it to contain %v", rr.Body.String(), tt.expectedBody)
 				}

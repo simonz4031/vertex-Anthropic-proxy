@@ -4,6 +4,12 @@ type AnthropicRequest struct {
     Model     string    `json:"model"`
     Messages  []Message `json:"messages"`
     MaxTokens int       `json:"max_tokens"`
+    Stream    bool      `json:"stream"`
+}
+
+type Message struct {
+    Role    string      `json:"role"`
+    Content interface{} `json:"content"`
 }
 
 type VertexAIRequest struct {
@@ -12,13 +18,8 @@ type VertexAIRequest struct {
     MaxTokens        int       `json:"max_tokens"`
 }
 
-type Message struct {
-    Role    string `json:"role"`
-    Content string `json:"content"`
-}
-
 type VertexAIResponse struct {
-    Id         string    `json:"id"`
+    ID         string    `json:"id"`
     Type       string    `json:"type"`
     Role       string    `json:"role"`
     Content    []Content `json:"content"`
