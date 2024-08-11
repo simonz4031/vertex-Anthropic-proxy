@@ -1,6 +1,6 @@
 # Vertex AI Anthropic Proxy
 
-This project provides a proxy server that allows you to use the Anthropic Claude API format while leveraging Google Cloud's Vertex AI backend. It translates requests from the Anthropic format to Vertex AI format and vice versa.
+This project provides a proxy server that translates requests from Anthropic's Claude API and OpenAI's API format to Google Cloud's Vertex AI, specifically for the Claude 3.5 Sonnet model.
 
 ## Table of Contents
 
@@ -34,6 +34,7 @@ This project provides a proxy server that allows you to use the Anthropic Claude
    VERTEX_AI_REGION=your-region
    MODEL=claude-3-5-sonnet@20240620
    ANTHROPIC_API_KEY=your-api-key
+   OPENAI_PROXY_API_KEY=your-openai-proxy-api-key
    ```
 
 4. Build the project:
@@ -55,6 +56,7 @@ The following environment variables are required:
 - `VERTEX_AI_REGION`: The region for Vertex AI (e.g., us-east5)
 - `MODEL`: The Claude model to use (e.g., claude-3-5-sonnet@20240620)
 - `ANTHROPIC_API_KEY`: Your Anthropic API key
+- `OPENAI_PROXY_API_KEY`: Your OpenAI proxy API key
 
 ## API Endpoints
 
@@ -82,6 +84,38 @@ Response body:
     "input_tokens": 10,
     "output_tokens": 20
   }
+}
+```
+
+### POST /v1/chat/completions
+
+This endpoint accepts requests in both Anthropic Claude API and OpenAI API formats, and returns responses in the corresponding format.
+
+OpenAI API Request body:
+```json
+{
+  "model": "gpt-3.5-turbo",
+  "messages": [
+    {"role": "user", "content": "Your message here"}
+  ]
+}
+```
+
+OpenAI API Response body:
+```json
+{
+  "id": "chatcmpl-123",
+  "object": "chat.completion",
+  "created": 1677652288,
+  "model": "gpt-3.5-turbo-0613",
+  "choices": [{
+    "index": 0,
+    "message": {
+      "role": "assistant",
+      "content": "Claude's response"
+    },
+    "finish_reason": "stop"
+  }]
 }
 ```
 
@@ -218,6 +252,7 @@ This service can be easily deployed using Docker. Here are the steps to build an
      -e VERTEX_AI_ENDPOINT=your-endpoint \
      -e MODEL=your-model \
      -e ANTHROPIC_PROXY_API_KEY=your-api-key \
+     -e OPENAI_PROXY_API_KEY=your-openai-proxy-api-key \
      vertexai-anthropic-proxy
    ```
 

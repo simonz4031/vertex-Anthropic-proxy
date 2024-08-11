@@ -24,7 +24,7 @@ func main() {
 
 	// Set up routes with middleware
 	http.HandleFunc("/v1/messages", middleware.AuthMiddleware(cfg)(handlers.HandleMessages(cfg)))
-	http.HandleFunc("/v1/chat/completions", middleware.AuthMiddleware(cfg)(handlers.HandleMessages(cfg))) // Using the same handler for now
+	http.HandleFunc("/v1/chat/completions", middleware.AuthMiddleware(cfg)(handlers.HandleOpenAIMessages(cfg)))
 	http.HandleFunc("/set-log-level", handlers.HandleSetLogLevel)
 	http.HandleFunc("/refresh-credentials", handlers.HandleRefreshCredentials)
 

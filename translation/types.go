@@ -3,6 +3,7 @@ package translation
 type AnthropicRequest struct {
     Model     string    `json:"model"`
     Messages  []Message `json:"messages"`
+    System    string    `json:"system,omitempty"`
     MaxTokens int       `json:"max_tokens"`
     Stream    bool      `json:"stream"`
 }
@@ -15,7 +16,9 @@ type Message struct {
 type VertexAIRequest struct {
     AnthropicVersion string    `json:"anthropic_version"`
     Messages         []Message `json:"messages"`
+    System           string    `json:"system,omitempty"`
     MaxTokens        int       `json:"max_tokens"`
+    Stream           bool      `json:"stream"`
 }
 
 type VertexAIResponse struct {

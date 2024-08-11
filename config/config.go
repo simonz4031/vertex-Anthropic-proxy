@@ -13,6 +13,7 @@ type Config struct {
 	VertexAIEndpoint     string
 	AnthropicModel       string
 	AnthropicProxyAPIKey string
+	OpenAIProxyAPIKey    string
 }
 
 func LoadConfig() *Config {
@@ -27,6 +28,7 @@ func LoadConfig() *Config {
 		VertexAIEndpoint:     os.Getenv("VERTEX_AI_ENDPOINT"),
 		AnthropicModel:       os.Getenv("MODEL"),
 		AnthropicProxyAPIKey: os.Getenv("ANTHROPIC_PROXY_API_KEY"),
+		OpenAIProxyAPIKey:    os.Getenv("OPENAI_PROXY_API_KEY"),
 	}
 
 	if cfg.VertexAIEndpoint == "" {
